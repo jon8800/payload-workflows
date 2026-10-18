@@ -1,0 +1,127 @@
+{
+  "name": "payload-workflows",
+  "version": "0.1.0",
+  "description": "Visual workflows for Payload CMS 3: see every job run as a graph, and build workflows in the admin panel by dragging tasks onto a canvas. Runs on Payload's own jobs queue.",
+  "keywords": [
+    "payload",
+    "payloadcms",
+    "payload-plugin",
+    "workflows",
+    "jobs",
+    "queue",
+    "automation",
+    "react-flow",
+    "no-code"
+  ],
+  "license": "MIT",
+  "author": "Eugene Lominos <hello@eugenelominos.com>",
+  "homepage": "https://github.com/jon8800/payload-workflows#readme",
+  "bugs": "https://github.com/jon8800/payload-workflows/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jon8800/payload-workflows.git"
+  },
+  "type": "module",
+  "sideEffects": [
+    "*.scss",
+    "*.css"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/exports/client.ts",
+    "./rsc": "./src/exports/rsc.ts",
+    "./core": "./src/core/index.ts"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./client": {
+        "types": "./dist/exports/client.d.ts",
+        "default": "./dist/exports/client.js"
+      },
+      "./rsc": {
+        "types": "./dist/exports/rsc.d.ts",
+        "default": "./dist/exports/rsc.js"
+      },
+      "./core": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/core/index.js"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build-package.mjs",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "dev": "next dev dev --port 3060",
+    "dev:generate-importmap": "cd dev && cross-env PAYLOAD_CONFIG_PATH=./payload.config.ts payload generate:importmap",
+    "dev:generate-types": "cd dev && cross-env PAYLOAD_CONFIG_PATH=./payload.config.ts payload generate:types",
+    "dev:payload": "cd dev && cross-env PAYLOAD_CONFIG_PATH=./payload.config.ts payload",
+    "dev:seed": "cd dev && cross-env PAYLOAD_CONFIG_PATH=./payload.config.ts tsx seed.ts",
+    "lint": "oxlint",
+    "prepack": "node scripts/build-package.mjs",
+    "prepublishOnly": "node scripts/check-publish.mjs && pnpm test",
+    "screenshots": "node scripts/screenshots.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p dev",
+    "verify": "pnpm typecheck && pnpm lint && pnpm test"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12.12.0",
+    "croner": "^10.0.1"
+  },
+  "peerDependencies": {
+    "@payloadcms/ui": "^3.90.0",
+    "next": "^16.3.3",
+    "payload": "^3.90.0",
+    "react": "^19.2.1",
+    "react-dom": "^19.2.1"
+  },
+  "devDependencies": {
+    "@payloadcms/db-sqlite": "3.90.2",
+    "@payloadcms/next": "3.90.2",
+    "@payloadcms/ui": "3.90.2",
+    "@types/node": "^24",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "cross-env": "^7.0.3",
+    "graphql": "^16.8.1",
+    "next": "16.3.8",
+    "oxlint": "^1.88.0",
+    "payload": "3.90.2",
+    "playwright": "1.64.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "sass": "^1.93.0",
+    "sharp": "0.34.5",
+    "tsx": "^4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "packageManager": "pnpm@10.18.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "sharp",
+      "esbuild",
+      "better-sqlite3",
+      "@swc/core",
+      "unrs-resolver"
+    ]
+  }
+}

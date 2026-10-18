@@ -1,0 +1,40 @@
+name: Publish to npm
+
+# Runs when a version tag (v0.1.0) is pushed. The tag must match package.json.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.repository == 'jon8800/payload-workflows'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm verify
+
+      # Publishes with a raw authenticated PUT (see scripts/publish.mjs). `npm publish` returns 403
+      # on this account: security-key-only 2FA collides with the CLI's OTP flow. NPM_TOKEN is a
+      # granular token with "bypass 2FA".
+      - run: node scripts/publish.mjs
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
