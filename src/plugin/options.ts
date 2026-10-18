@@ -1,11 +1,12 @@
-import type { Config, PayloadRequest, TaskConfig, Where } from 'payload'
+import type { Access, Config, PayloadRequest, TaskConfig } from 'payload'
 
 export const RUN_WORKFLOW_SLUG = 'payloadWorkflowsRun'
 export const SCHEDULER_TASK_SLUG = 'payloadWorkflowsSchedule'
 /** Tasks that never appear in the builder's palette. */
 export const INTERNAL_TASKS = [SCHEDULER_TASK_SLUG, 'schedulePublish', 'inline']
 
-export type AccessFn = (args: { req: PayloadRequest }) => boolean | Promise<boolean> | Where
+// Payload's own access type, so a project's existing access functions plug straight in.
+export type AccessFn = Access
 
 export type WorkflowsPluginOptions = {
   /** Set to false to turn the whole plugin off without removing it. */
