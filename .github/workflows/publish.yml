@@ -1,14 +1,15 @@
 name: Publish to npm
 
-# Runs when a version tag (v0.1.0) is pushed. The tag must match package.json.
+# Runs when a version tag (v0.1.1) is pushed. The tag must match package.json.
+# npm trusts this workflow through OIDC (trusted publishing), so no token is stored.
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: publish
@@ -27,14 +28,19 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Check the tag matches package.json
+        run: test "${GITHUB_REF_NAME}" = "v$(node -p "require('./package.json').version")"
 
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm verify
 
-      # Publishes with a raw authenticated PUT (see scripts/publish.mjs). `npm publish` returns 403
-      # on this account: security-key-only 2FA collides with the CLI's OTP flow. NPM_TOKEN is a
-      # granular token with "bypass 2FA".
-      - run: node scripts/publish.mjs
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # pnpm pack builds and applies publishConfig, so the tarball points at dist/.
+      # npm publishes the tarball as it is, with provenance from this workflow.
+      - run: pnpm pack
+
+      - run: npm install -g npm@latest
+
+      - run: npm publish ./payload-workflows-*.tgz --access public --provenance

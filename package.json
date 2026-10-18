@@ -1,6 +1,6 @@
 {
   "name": "payload-workflows",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Visual workflows for Payload CMS 3: see every job run as a graph, and build workflows in the admin panel by dragging tasks onto a canvas. Runs on Payload's own jobs queue.",
   "keywords": [
     "payload",
