@@ -22,6 +22,9 @@ function CardNodeView({ data, selected }: NodeProps<CardNode>) {
 
 const nodeTypes = { card: CardNodeView }
 
+/** How many steps the graph opens on when no step failed. */
+const FIRST_STEPS = 5
+
 /** The read-only React Flow canvas of the run viewer. Loaded on demand, only on the Run tab. */
 export default function RunGraph({
   model,
@@ -68,13 +71,20 @@ export default function RunGraph({
     [model],
   )
 
+  // A long run shrinks to fit and its cards turn unreadable. Open at a readable size on the
+  // failed step, or else on the first few, and let the wheel scroll down the rest.
+  const focus = useMemo(() => {
+    const failed = model.nodes.find((node) => node.card.status === 'failed')
+    return (failed ? [failed] : model.nodes.slice(0, FIRST_STEPS)).map((node) => ({ id: node.id }))
+  }, [model])
+
   return (
     <ReactFlow
       colorMode={theme === 'dark' ? 'dark' : 'light'}
       edges={edges}
       edgesFocusable={false}
       fitView
-      fitViewOptions={{ maxZoom: 1, padding: 0.2 }}
+      fitViewOptions={{ maxZoom: 1, minZoom: 0.75, nodes: focus, padding: 0.2 }}
       maxZoom={1.5}
       minZoom={0.2}
       nodes={nodes}
@@ -83,6 +93,7 @@ export default function RunGraph({
       nodeTypes={nodeTypes}
       onNodeClick={(_, node) => onSelect(node.id === selected ? null : node.id)}
       onPaneClick={() => onSelect(null)}
+      panOnScroll
       proOptions={{ hideAttribution: true }}
       style={flowThemeStyle}
     >
