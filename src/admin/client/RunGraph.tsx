@@ -56,15 +56,15 @@ export default function RunGraph({
         className: edge.taken ? 'pw-edge pw-edge--taken' : 'pw-edge',
         id: edge.id,
         markerEnd: {
-          color: edge.taken ? 'var(--theme-success-500)' : 'var(--theme-elevation-350)',
+          color: edge.taken ? 'var(--color-bg-success)' : 'var(--color-border)',
           height: 16,
           type: MarkerType.ArrowClosed,
           width: 16,
         },
         source: edge.source,
         style: edge.taken
-          ? { stroke: 'var(--theme-success-500)', strokeWidth: 2 }
-          : { stroke: 'var(--theme-elevation-300)', strokeDasharray: '5 5' },
+          ? { stroke: 'var(--color-bg-success)', strokeWidth: 2 }
+          : { stroke: 'var(--color-border)', strokeDasharray: '5 5' },
         sourceHandle: edge.sourceHandle ?? undefined,
         target: edge.target,
       })),

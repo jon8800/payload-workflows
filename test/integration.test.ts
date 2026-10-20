@@ -1,5 +1,5 @@
 import { sqliteAdapter } from '@payloadcms/db-sqlite'
-import { buildConfig, createLocalReq, getPayload, type Payload, type TaskConfig } from 'payload'
+import { buildConfig, createPayloadRequest, getPayload, type Payload, type TaskConfig } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { JobLogEntry, JobSnapshot } from '../src/core/runs'
@@ -18,7 +18,7 @@ const tasks: TaskConfig[] = [
     inputSchema: [{ name: 'text', type: 'text', required: true }],
     outputSchema: [{ name: 'id', type: 'text' }],
     handler: async ({ input, req }) => {
-      const note = (await req.payload.create({ collection: 'notes' as never, data: { text: (input as { text: string }).text } as never, req })) as unknown as { id: number }
+      const note = (await req.payload.create({ collection: 'notes' as never, data: { text: (input as { text: string }).text } as never, req, overrideAccess: true })) as unknown as { id: number }
       return { output: { id: String(note.id) } }
     },
   },
@@ -91,7 +91,7 @@ async function getJob(id: number | string): Promise<JobSnapshot> {
 }
 
 async function runQueue() {
-  await payload.jobs.run({ queue: 'workflows', silent: true })
+  await payload.jobs.run({ queue: 'workflows', silent: true, overrideAccess: true })
 }
 
 beforeAll(async () => {
@@ -118,8 +118,8 @@ afterAll(async () => {
 describe('visual workflow runs', () => {
   it('runs a branch, retries a failing task, and reuses outputs of steps that already succeeded', async () => {
     const workflow = await createWorkflow('Branching', branchingGraph('retry'))
-    const req = await createLocalReq({}, payload)
-    const job = await queueWorkflowRun({ req, trigger: { data: { priority: 'high' }, kind: 'manual' }, workflow: workflow as never })
+    const req = await createPayloadRequest({ payload })
+    const job = await queueWorkflowRun({ overrideAccess: true, req, trigger: { data: { priority: 'high' }, kind: 'manual' }, workflow: workflow as never })
 
     await runQueue()
     let snapshot = await getJob(job.id)
@@ -135,7 +135,7 @@ describe('visual workflow runs', () => {
     expect(jobState(snapshot)).toBe('completed')
 
     // The note was created once: the retry reused the first attempt's output.
-    const notes = await payload.find({ collection: 'notes' as never, where: { text: { equals: 'Note for high' } } })
+    const notes = await payload.find({ collection: 'notes' as never, where: { text: { equals: 'Note for high' } }, overrideAccess: true })
     expect(notes.totalDocs).toBe(1)
     expect(sent.at(-1)).toEqual({ subject: `Note ${(notes.docs[0] as unknown as { id: number }).id} after 2 calls`, to: 'ops@example.com' })
 
@@ -157,8 +157,8 @@ describe('visual workflow runs', () => {
 
   it('takes the false branch', async () => {
     const workflow = await createWorkflow('Low priority', branchingGraph('low'))
-    const req = await createLocalReq({}, payload)
-    const job = await queueWorkflowRun({ req, trigger: { data: { priority: 'low' }, kind: 'manual' }, workflow: workflow as never })
+    const req = await createPayloadRequest({ payload })
+    const job = await queueWorkflowRun({ overrideAccess: true, req, trigger: { data: { priority: 'low' }, kind: 'manual' }, workflow: workflow as never })
     await runQueue()
     const snapshot = await getJob(job.id)
     expect(jobState(snapshot)).toBe('completed')
@@ -173,8 +173,8 @@ describe('visual workflow runs', () => {
     if (flaky.type === 'task') flaky.data.input.failTimes = '99'
     await payload.update({ collection: 'workflows', data: { graph } as never, id: workflow.id, overrideAccess: true })
     const updated = await payload.findByID({ collection: 'workflows', id: workflow.id, overrideAccess: true })
-    const req = await createLocalReq({}, payload)
-    const job = await queueWorkflowRun({ req, trigger: { data: { priority: 'high' }, kind: 'manual' }, workflow: updated as never })
+    const req = await createPayloadRequest({ payload })
+    const job = await queueWorkflowRun({ overrideAccess: true, req, trigger: { data: { priority: 'high' }, kind: 'manual' }, workflow: updated as never })
 
     for (let i = 0; i < 4; i++) await runQueue()
     const snapshot = await getJob(job.id)
@@ -210,9 +210,9 @@ describe('triggers', () => {
       (await payload.find({ collection: 'payload-jobs', overrideAccess: true, where: { workflowSlug: { equals: RUN_WORKFLOW_SLUG } } }))
         .docs.filter((job) => (job.input as { workflowId?: string }).workflowId === String(workflow.id)).length
 
-    await payload.create({ collection: 'posts', data: { status: 'draft', title: 'Draft' } })
+    await payload.create({ collection: 'posts', data: { status: 'draft', title: 'Draft' }, overrideAccess: true })
     expect(await countRuns()).toBe(0)
-    await payload.create({ collection: 'posts', data: { status: 'published', title: 'Launch' } })
+    await payload.create({ collection: 'posts', data: { status: 'published', title: 'Launch' }, overrideAccess: true })
     expect(await countRuns()).toBe(1)
 
     await runQueue()
@@ -230,7 +230,7 @@ describe('triggers', () => {
     const workflow = (await createWorkflow('Daily', graph)) as unknown as { id: number; nextRunAt: string }
     expect(workflow.nextRunAt).toBeTruthy()
 
-    const req = await createLocalReq({}, payload)
+    const req = await createPayloadRequest({ payload })
     expect(await queueDueWorkflows(req, new Date(Date.parse(workflow.nextRunAt) - 1000))).toBe(0)
     const later = new Date(Date.parse(workflow.nextRunAt) + 1000)
     expect(await queueDueWorkflows(req, later)).toBe(1)
@@ -272,8 +272,8 @@ describe('delay', () => {
       ],
     }
     const workflow = await createWorkflow('Delayed', graph)
-    const req = await createLocalReq({}, payload)
-    const job = await queueWorkflowRun({ req, trigger: { kind: 'manual' }, workflow: workflow as never })
+    const req = await createPayloadRequest({ payload })
+    const job = await queueWorkflowRun({ overrideAccess: true, req, trigger: { kind: 'manual' }, workflow: workflow as never })
     await runQueue()
 
     const first = await getJob(job.id)

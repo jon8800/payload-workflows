@@ -34,12 +34,13 @@ export function catalogueFor(payload: Payload) {
 /** Queues one run of a visual workflow on the plugin's queue. */
 export async function queueWorkflowRun(args: {
   depth?: number
+  overrideAccess?: boolean
   req: PayloadRequest
   trigger: Record<string, unknown>
   waitUntil?: Date
   workflow: WorkflowDoc
 }): Promise<Job> {
-  const { depth, req, trigger, waitUntil, workflow } = args
+  const { depth, overrideAccess = false, req, trigger, waitUntil, workflow } = args
   const options = getOptions(req.payload.config)
   if (!workflow.graph) throw new Error(`Workflow ${workflow.id} has no graph.`)
   const input: VisualRunInput = {
@@ -51,6 +52,7 @@ export async function queueWorkflowRun(args: {
   }
   return (await req.payload.jobs.queue({
     input: input as never,
+    overrideAccess,
     queue: options.queue,
     req,
     waitUntil,
@@ -124,6 +126,8 @@ export function runWorkflowConfig(options: ResolvedOptions): NonNullable<JobsCon
             task: async ({ req: taskReq }) => {
               const waitUntil = new Date(Date.now() + ms)
               const next = (await taskReq.payload.jobs.queue({
+                // The worker continues a workflow that already passed its initial access check.
+                overrideAccess: true,
                 input: {
                   ...input,
                   resume: {

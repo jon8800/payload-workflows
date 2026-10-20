@@ -1,6 +1,8 @@
 # payload-workflows
 
-Visual workflows for [Payload CMS](https://payloadcms.com) 3.
+Visual workflows for [Payload CMS](https://payloadcms.com) 4 beta.
+
+`0.2.0-next.0` targets Payload `4.0.0-beta.3` only. Install it with `@next`. The `latest` tag remains on the Payload 3 release.
 
 - **Run viewer.** Every job in `payload-jobs` gets a **Run** tab that draws the job as a graph: one node per task run, a picker for each retry attempt, and a side panel with each step's input, output and error. Running jobs update by themselves.
 - **Workflow builder.** A `workflows` collection where editors build automations by dragging tasks onto a canvas and connecting them, with no code. Workflows start manually, on a schedule, or when a document is created, updated or deleted. They run on Payload's own jobs queue, with Payload's retries.
@@ -9,13 +11,14 @@ Visual workflows for [Payload CMS](https://payloadcms.com) 3.
 
 ## Requirements
 
-- Payload `^3.90`, Next.js `^16.3`, React 19
+- Payload and `@payloadcms/ui` `4.0.0-beta.3`, Next.js `^16.4.2`, React 19
+- Node `>=24.15.0`; TypeScript projects need TypeScript `>=6.0.3`
 - At least one task in `jobs.tasks` (the builder places your own tasks on the canvas)
 
 ## Install
 
 ```sh
-pnpm add payload-workflows
+pnpm add payload-workflows@next
 ```
 
 ```ts
@@ -164,6 +167,7 @@ const sendEmail: TaskConfig<'sendEmail'> = {
 - `text`, `textarea`, `email`, `number`, `date`, `relationship` and `upload` fields become text inputs that accept references. `select` and `radio` fields become a select. `checkbox` becomes a checkbox. `json`, `group`, `array` and other fields become a JSON text area.
 - The runner converts text to the field type before it calls the task: `"42"` becomes `42` for a number field, and JSON text is parsed for a JSON field. Empty values are left out.
 - `outputSchema` field names appear as references in later steps.
+- Payload v4 checks Local API access by default. A trusted background task must explicitly set `overrideAccess: true` when it has no user. Apply that only after the trigger has been authorized.
 - Pass `req` to Local API calls in your tasks. Then a task that updates a document counts toward `maxChainDepth`, and a workflow cannot trigger itself forever.
 
 ## Known limits

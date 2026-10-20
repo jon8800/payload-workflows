@@ -80,6 +80,8 @@ export async function queueDueWorkflows(req: PayloadRequest, now = new Date()): 
     if (!doc.cron) continue
     await queueWorkflowRun({
       depth: 0,
+      // Scheduled automation runs without an interactive user.
+      overrideAccess: true,
       req,
       trigger: { cron: doc.cron, firedAt: now.toISOString(), kind: 'schedule', scheduledFor: doc.nextRunAt },
       workflow: doc,
@@ -103,7 +105,7 @@ export async function queueDueWorkflows(req: PayloadRequest, now = new Date()): 
  * and it queues the schedule workflows that are due. It also deletes its own finished jobs that
  * are older than an hour, so it does not fill the jobs collection when completed jobs are kept.
  */
-export function schedulerTaskConfig(options: ResolvedOptions): TaskConfig {
+export function schedulerTaskConfig(options: ResolvedOptions): TaskConfig<{ input: Record<string, never>; output: { queued: number } }> {
   return {
     slug: SCHEDULER_TASK_SLUG,
     label: 'Queue scheduled workflows',
@@ -125,7 +127,7 @@ export function schedulerTaskConfig(options: ResolvedOptions): TaskConfig {
       })
       return { output: { queued } }
     },
-  } as TaskConfig
+  }
 }
 
 async function queueCollectionWorkflows(args: {
@@ -166,7 +168,8 @@ async function queueCollectionWorkflows(args: {
     if (!trigger?.operations?.includes(operation)) continue
     const data = { collection, doc, kind: 'collection', operation, previousDoc: previousDoc ?? null, user: userRef(req) }
     if (!evaluateRules(trigger.filter, { trigger: data }).passed) continue
-    await queueWorkflowRun({ depth: depth + 1, req, trigger: data, workflow })
+    // The source collection operation already passed access checks.
+    await queueWorkflowRun({ depth: depth + 1, overrideAccess: true, req, trigger: data, workflow })
   }
 }
 

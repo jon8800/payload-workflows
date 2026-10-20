@@ -161,7 +161,7 @@ function RulesEditor({ focus, group, onChange, path, readOnly, title }: { focus:
           </div>
         )
       })}
-      <Button buttonStyle="secondary" disabled={readOnly} margin={false} onClick={() => onChange({ ...group, match: group.match ?? 'all', rules: [...rules, { left: '', operator: 'equals', right: '' }] })} size="small">
+      <Button buttonStyle="secondary" disabled={readOnly} margin={false} onClick={() => onChange({ ...group, match: group.match ?? 'all', rules: [...rules, { left: '', operator: 'equals', right: '' }] })} size="medium">
         Add rule
       </Button>
     </div>
@@ -467,7 +467,7 @@ function NodeSettings(props: Omit<InspectorProps, 'node'> & { focus: (insert: In
 
       {node.type !== 'trigger' && (
         <div className="pw-inspector__footer">
-          <Button buttonStyle="secondary" disabled={readOnly} margin={false} onClick={() => onDelete(node.id)} size="small">
+          <Button buttonStyle="secondary" disabled={readOnly} margin={false} onClick={() => onDelete(node.id)} size="medium">
             Delete step
           </Button>
         </div>

@@ -24,6 +24,7 @@ export type JobSnapshot = {
   input?: unknown
   log?: JobLogEntry[] | null
   processing?: boolean | null
+  processingUntil?: null | string
   queue?: null | string
   taskSlug?: null | string
   totalTried?: null | number
@@ -88,7 +89,7 @@ export function jobState(job: JobSnapshot, now = Date.now()): JobState {
     const cancelled = typeof job.error === 'object' && job.error !== null && 'cancelled' in job.error && job.error.cancelled
     return cancelled ? 'cancelled' : 'failed'
   }
-  if (job.processing) return 'running'
+  if (job.processing || (job.processingUntil && Date.parse(job.processingUntil) > now)) return 'running'
   if ((job.totalTried ?? 0) > 0) return 'retrying'
   if (job.waitUntil && Date.parse(job.waitUntil) > now) return 'scheduled'
   return 'queued'

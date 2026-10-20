@@ -26,16 +26,19 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: '24.15.0'
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
-      - name: Check the tag matches package.json
-        run: test "${GITHUB_REF_NAME}" = "v$(node -p "require('./package.json').version")"
+      - name: Check version tag and npm channel
+        id: release
+        run: node scripts/release-target.mjs
 
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm verify
+
+      - run: node --test scripts/release-target.test.mjs
 
       # pnpm pack builds and applies publishConfig, so the tarball points at dist/.
       # npm publishes the tarball as it is, with provenance from this workflow.
@@ -43,4 +46,4 @@ jobs:
 
       - run: npm install -g npm@latest
 
-      - run: npm publish ./payload-workflows-*.tgz --access public --provenance
+      - run: npm publish "${{ steps.release.outputs.filename }}" --access public --provenance --tag "${{ steps.release.outputs.tag }}"

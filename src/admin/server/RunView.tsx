@@ -25,6 +25,7 @@ export function RunView(props: DocumentViewServerProps & { refreshInterval?: num
     input: doc.input,
     log: doc.log,
     processing: doc.processing,
+    processingUntil: doc.processingUntil,
     queue: doc.queue,
     taskSlug: doc.taskSlug,
     totalTried: doc.totalTried,

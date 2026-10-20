@@ -53,7 +53,7 @@ function EditorNodeView({ data, id, selected, type }: NodeProps<FlowNode>) {
 
 const nodeTypes = { condition: EditorNodeView, delay: EditorNodeView, task: EditorNodeView, trigger: EditorNodeView }
 
-const defaultEdgeOptions = { markerEnd: { color: 'var(--theme-elevation-400)', height: 16, type: MarkerType.ArrowClosed, width: 16 } }
+const defaultEdgeOptions = { markerEnd: { color: 'var(--color-text-tertiary)', height: 16, type: MarkerType.ArrowClosed, width: 16 } }
 
 export type EditorProps = {
   catalogue: TaskCatalogue

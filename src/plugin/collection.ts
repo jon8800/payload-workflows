@@ -47,7 +47,7 @@ function runNowEndpoint(options: ResolvedOptions): Endpoint {
       })
       // Start it now rather than on the next autoRun tick. The response does not wait for the run;
       // the run viewer shows its progress.
-      void req.payload.jobs.runByID({ id: job.id }).catch((err: unknown) => {
+      void req.payload.jobs.runByID({ id: job.id, req, overrideAccess: false }).catch((err: unknown) => {
         req.payload.logger.error({ err, msg: `payload-workflows: run of job ${job.id} failed to start` })
       })
       return Response.json({ jobId: job.id })

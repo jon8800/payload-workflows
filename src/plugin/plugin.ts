@@ -7,7 +7,7 @@ import { resolveOptions } from './options'
 import { runWorkflowConfig } from './runner'
 import { afterChangeTrigger, afterDeleteTrigger, schedulerTaskConfig } from './triggers'
 
-const JOB_COLUMNS = ['id', 'workflowSlug', 'taskSlug', 'queue', 'processing', 'hasError', 'completedAt', 'createdAt']
+const JOB_COLUMNS = ['id', 'workflowSlug', 'taskSlug', 'queue', 'processingUntil', 'hasError', 'completedAt', 'createdAt']
 
 type Override = NonNullable<JobsConfig['jobsCollectionOverrides']>
 type AutorunCronConfig = Extract<JobsConfig['autoRun'], unknown[]>[number]
