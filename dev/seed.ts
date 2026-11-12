@@ -16,8 +16,8 @@ for (const collection of ['posts', 'activity', 'workflows', 'payload-jobs'] as c
   await payload.delete({ collection, overrideAccess: true, where: { id: { exists: true } } })
 }
 
-const users = await payload.find({ collection: 'users', limit: 1, where: { email: { equals: DEV_USER.email } } })
-if (users.totalDocs === 0) await payload.create({ collection: 'users', data: DEV_USER })
+const users = await payload.find({ collection: 'users', limit: 1, overrideAccess: true, where: { email: { equals: DEV_USER.email } } })
+if (users.totalDocs === 0) await payload.create({ collection: 'users', data: DEV_USER, overrideAccess: true })
 
 const onPublish: WorkflowGraph = autoLayout({
   edges: [
@@ -127,27 +127,27 @@ await create('Weekly report', weekly)
 const welcome = await create('Welcome series', followUp, false)
 
 const run = async (queue: string, times = 1) => {
-  for (let i = 0; i < times; i++) await payload.jobs.run({ queue, silent: true })
+  for (let i = 0; i < times; i++) await payload.jobs.run({ overrideAccess: true, queue, silent: true })
 }
 
 // A single-task job.
-await payload.jobs.queue({ input: { subject: 'Hello from a single task', to: 'someone@example.com' }, task: 'sendEmail' })
+await payload.jobs.queue({ input: { subject: 'Hello from a single task', to: 'someone@example.com' }, overrideAccess: true, task: 'sendEmail' })
 await run('default')
 
 // A code-defined workflow whose second task fails once, then succeeds on the retry.
-await payload.jobs.queue({ input: { postId: 'demo' }, workflow: 'publishDigest' })
+await payload.jobs.queue({ input: { postId: 'demo' }, overrideAccess: true, workflow: 'publishDigest' })
 await run('default', 2)
 
 // Visual workflow runs, started by collection events: one featured post (Yes branch, with a
 // retry), one normal post (No branch).
-await payload.create({ collection: 'posts', data: { authorEmail: 'ada@example.com', featured: true, status: 'published', title: 'Launching payload-workflows' } })
-await payload.create({ collection: 'posts', data: { authorEmail: 'grace@example.com', featured: false, status: 'published', title: 'Release notes 0.1' } })
-await payload.create({ collection: 'posts', data: { status: 'draft', title: 'An unfinished draft' } })
+await payload.create({ collection: 'posts', data: { authorEmail: 'ada@example.com', featured: true, status: 'published', title: 'Launching payload-workflows' }, overrideAccess: true })
+await payload.create({ collection: 'posts', data: { authorEmail: 'grace@example.com', featured: false, status: 'published', title: 'Release notes 0.1' }, overrideAccess: true })
+await payload.create({ collection: 'posts', data: { status: 'draft', title: 'An unfinished draft' }, overrideAccess: true })
 await run('workflows', 2)
 
 // A manual run that stops at the Delay and continues in a later job.
 const req = { payload, context: {} } as never
-await queueWorkflowRun({ req, trigger: { data: { email: 'new.customer@example.com', name: 'Ada' }, kind: 'manual' }, workflow: welcome as never })
+await queueWorkflowRun({ overrideAccess: true, req, trigger: { data: { email: 'new.customer@example.com', name: 'Ada' }, kind: 'manual' }, workflow: welcome as never })
 await run('workflows')
 
 const jobs = await payload.find({ collection: 'payload-jobs', limit: 50, overrideAccess: true, sort: 'createdAt' })

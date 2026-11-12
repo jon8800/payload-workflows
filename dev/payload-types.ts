@@ -76,6 +76,7 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
+    'payload-llm-instructions': PayloadLlmInstruction;
   };
   collectionsJoins: {};
   collectionsSelect: {
@@ -88,6 +89,7 @@ export interface Config {
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    'payload-llm-instructions': PayloadLlmInstructionsSelect<false> | PayloadLlmInstructionsSelect<true>;
   };
   db: {
     defaultIDType: number;
@@ -101,7 +103,10 @@ export interface Config {
   };
   locale: null;
   widgets: {
+    welcome: WelcomeWidget;
     collections: CollectionsWidget;
+    'collection-query': CollectionQueryWidget;
+    activity: ActivityWidget;
   };
   user: User;
   jobs: {
@@ -146,6 +151,14 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
+  createdBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -161,6 +174,8 @@ export interface User {
         id: string;
         createdAt?: string | null;
         expiresAt: string;
+        refreshCount?: number | null;
+        refreshedAt?: string | null;
       }[]
     | null;
   password?: string | null;
@@ -177,6 +192,14 @@ export interface Post {
   featured?: boolean | null;
   authorEmail?: string | null;
   body?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -187,6 +210,14 @@ export interface Post {
 export interface Activity {
   id: number;
   message: string;
+  createdBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -200,9 +231,11 @@ export interface Workflow {
   id: number;
   title: string;
   /**
-   * Only enabled workflows start on a schedule or a collection event. "Run now" works either way.
+   * Starts on its schedule or collection event. "Run now" works either way.
    */
   enabled?: boolean | null;
+  triggerKind?: ('manual' | 'schedule' | 'collection') | null;
+  nextRunAt?: string | null;
   graph?:
     | {
         [k: string]: unknown;
@@ -212,10 +245,16 @@ export interface Workflow {
     | number
     | boolean
     | null;
-  triggerKind?: ('manual' | 'schedule' | 'collection') | null;
-  nextRunAt?: string | null;
   triggerCollection?: string | null;
   cron?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -263,6 +302,15 @@ export interface PayloadJob {
     | number
     | boolean
     | null;
+  meta?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   completedAt?: string | null;
   totalTried?: number | null;
   /**
@@ -291,7 +339,7 @@ export interface PayloadJob {
         taskSlug:
           'inline' | 'sendEmail' | 'createDocument' | 'updateDocument' | 'httpRequest' | 'payloadWorkflowsSchedule';
         taskID: string;
-        input?:
+        input:
           | {
               [k: string]: unknown;
             }
@@ -319,6 +367,19 @@ export interface PayloadJob {
           | number
           | boolean
           | null;
+        parent?: {
+          taskSlug?:
+            | (
+                | 'inline'
+                | 'sendEmail'
+                | 'createDocument'
+                | 'updateDocument'
+                | 'httpRequest'
+                | 'payloadWorkflowsSchedule'
+              )
+            | null;
+          taskID?: string | null;
+        };
         id?: string | null;
       }[]
     | null;
@@ -327,16 +388,12 @@ export interface PayloadJob {
     ('inline' | 'sendEmail' | 'createDocument' | 'updateDocument' | 'httpRequest' | 'payloadWorkflowsSchedule') | null;
   queue?: string | null;
   waitUntil?: string | null;
-  processing?: boolean | null;
-  meta?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
+  processingUntil?: string | null;
+  processingToken?: string | null;
+  /**
+   * Used for concurrency control. Jobs with the same key are subject to exclusive/supersedes rules.
+   */
+  concurrencyKey?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -407,9 +464,33 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-llm-instructions".
+ */
+export interface PayloadLlmInstruction {
+  id: string;
+  entitySlug: string;
+  title?: string | null;
+  entityType: 'collection' | 'global';
+  additionalInstructions?: string | null;
+  systemInstructions?: string | null;
+  createdBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedBy?: {
+    relationTo: 'users';
+    value: number | User;
+  } | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -426,6 +507,8 @@ export interface UsersSelect<T extends boolean = true> {
         id?: T;
         createdAt?: T;
         expiresAt?: T;
+        refreshCount?: T;
+        refreshedAt?: T;
       };
 }
 /**
@@ -438,6 +521,8 @@ export interface PostsSelect<T extends boolean = true> {
   featured?: T;
   authorEmail?: T;
   body?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -447,6 +532,8 @@ export interface PostsSelect<T extends boolean = true> {
  */
 export interface ActivitySelect<T extends boolean = true> {
   message?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -457,11 +544,13 @@ export interface ActivitySelect<T extends boolean = true> {
 export interface WorkflowsSelect<T extends boolean = true> {
   title?: T;
   enabled?: T;
-  graph?: T;
   triggerKind?: T;
   nextRunAt?: T;
+  graph?: T;
   triggerCollection?: T;
   cron?: T;
+  createdBy?: T;
+  updatedBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -480,6 +569,7 @@ export interface PayloadKvSelect<T extends boolean = true> {
 export interface PayloadJobsSelect<T extends boolean = true> {
   input?: T;
   taskStatus?: T;
+  meta?: T;
   completedAt?: T;
   totalTried?: T;
   hasError?: T;
@@ -495,14 +585,21 @@ export interface PayloadJobsSelect<T extends boolean = true> {
         output?: T;
         state?: T;
         error?: T;
+        parent?:
+          | T
+          | {
+              taskSlug?: T;
+              taskID?: T;
+            };
         id?: T;
       };
   workflowSlug?: T;
   taskSlug?: T;
   queue?: T;
   waitUntil?: T;
-  processing?: T;
-  meta?: T;
+  processingUntil?: T;
+  processingToken?: T;
+  concurrencyKey?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -540,6 +637,22 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "payload-llm-instructions_select".
+ */
+export interface PayloadLlmInstructionsSelect<T extends boolean = true> {
+  id?: T;
+  entitySlug?: T;
+  title?: T;
+  entityType?: T;
+  additionalInstructions?: T;
+  systemInstructions?: T;
+  createdBy?: T;
+  updatedBy?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-jobs-stats".
  */
 export interface PayloadJobsStat {
@@ -568,6 +681,16 @@ export interface PayloadJobsStatsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "welcome_widget".
+ */
+export interface WelcomeWidget {
+  data?: {
+    [k: string]: unknown;
+  };
+  width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -575,6 +698,39 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "collection-query_widget".
+ */
+export interface CollectionQueryWidget {
+  data?: {
+    title?: string | null;
+    relatedCollection: 'users' | 'posts' | 'activity' | 'workflows' | 'payload-jobs';
+    where?:
+      | {
+          [k: string]: unknown;
+        }
+      | unknown[]
+      | string
+      | number
+      | boolean
+      | null;
+    sortField?: string | null;
+    sortDirection?: ('asc' | 'desc') | null;
+    limit?: number | null;
+  };
+  width: 'x-small' | 'small' | 'medium' | 'large' | 'x-large' | 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "activity_widget".
+ */
+export interface ActivityWidget {
+  data?: {
+    excludedCollections?: ('users' | 'posts' | 'activity' | 'workflows' | 'payload-jobs')[] | null;
+  };
+  width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

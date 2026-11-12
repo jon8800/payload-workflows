@@ -33,7 +33,7 @@ export const createDocument = {
   ],
   outputSchema: [{ name: 'id', type: 'text', required: true }],
   handler: async ({ input, req }) => {
-    const doc = await req.payload.create({ collection: input.collection as 'activity', data: input.data as never, req })
+    const doc = await req.payload.create({ collection: input.collection as 'activity', data: input.data as never, overrideAccess: true, req })
     return { output: { id: String(doc.id) } }
   },
 } satisfies TaskConfig<'createDocument'>
@@ -51,7 +51,7 @@ export const updateDocument = {
     { name: 'updatedAt', type: 'text' },
   ],
   handler: async ({ input, req }) => {
-    const doc = await req.payload.update({ collection: input.collection as 'posts', data: input.data as never, id: input.id, req })
+    const doc = await req.payload.update({ collection: input.collection as 'posts', data: input.data as never, id: input.id, overrideAccess: true, req })
     return { output: { id: String(doc.id), updatedAt: doc.updatedAt } }
   },
 } satisfies TaskConfig<'updateDocument'>

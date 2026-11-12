@@ -1,6 +1,6 @@
 {
   "name": "payload-workflows",
-  "version": "0.2.0-next.0",
+  "version": "0.2.0-next.1",
   "description": "Visual workflows for Payload CMS 4: see every job run as a graph, and build workflows in the admin panel by dragging tasks onto a canvas. Runs on Payload's own jobs queue.",
   "keywords": [
     "payload",
@@ -23,7 +23,6 @@
   },
   "type": "module",
   "sideEffects": [
-    "*.scss",
     "*.css"
   ],
   "exports": {
@@ -85,38 +84,35 @@
     "croner": "^10.0.1"
   },
   "peerDependencies": {
-    "@payloadcms/ui": "4.0.0-beta.3",
-    "next": "^16.4.2",
-    "payload": "4.0.0-beta.3",
-    "react": "^19.2.1",
-    "react-dom": "^19.2.1"
+    "@payloadcms/ui": "^4.0.0-beta.8",
+    "payload": "^4.0.0-beta.8",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@payloadcms/db-sqlite": "4.0.0-beta.3",
-    "@payloadcms/next": "4.0.0-beta.3",
-    "@payloadcms/ui": "4.0.0-beta.3",
+    "@payloadcms/db-sqlite": "4.0.0-beta.8",
+    "@payloadcms/next": "4.0.0-beta.8",
+    "@payloadcms/ui": "4.0.0-beta.8",
     "@types/node": "24.12.3",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "cross-env": "^7.0.3",
+    "esbuild": "0.28.2",
     "graphql": "^16.8.1",
-    "next": "16.4.2",
+    "monaco-editor": "0.57.0",
+    "next": "16.4.6",
     "oxlint": "^1.88.0",
-    "payload": "4.0.0-beta.3",
+    "payload": "4.0.0-beta.8",
     "playwright": "1.64.1",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "sass": "^1.93.0",
-    "sharp": "0.34.5",
     "tsx": "^4.23.15",
-    "typescript": "6.0.3",
-    "vitest": "5.0.1",
+    "typescript": "7.0.2",
     "vite": "8.3.4",
-    "esbuild": "0.28.2",
-    "monaco-editor": "0.57.0"
+    "vitest": "5.0.1"
   },
   "engines": {
-    "node": ">=24.15.0"
+    "node": ">=24.22.1"
   },
   "packageManager": "pnpm@10.18.1",
   "pnpm": {

@@ -7,7 +7,7 @@ import { ancestors, autoLayout, topologicalSort } from './graph'
 import { compare, evaluateRules } from './rules'
 import { jobState, logToAttempts, takenEdges, visualNodeRuns } from './runs'
 import { findReferences, readPath, resolveTemplates } from './template'
-import { validateGraph } from './validate'
+import { cronIssue, validateGraph } from './validate'
 import { coerceInput, walkGraph } from './walk'
 
 const at = { x: 0, y: 0 }
@@ -170,6 +170,12 @@ describe('validateGraph', () => {
   it('checks trigger settings', () => {
     const schedule = validateGraph({ edges: [], nodes: [trigger({ cron: 'every day', kind: 'schedule' })] }, catalogue)
     expect(schedule[0]!.message).toMatch(/cron/)
+    for (const loose of ['/10 * * * *', '5/15 * * * *', '0 0,6/2 * * *']) {
+      expect(cronIssue(loose), loose).toMatch(/before each "\/"/)
+    }
+    for (const strict of ['*/10 * * * *', '5-59/15 * * * *', '0 9 * * 1-5', '0 */5 * * * *']) {
+      expect(cronIssue(strict), strict).toBeNull()
+    }
     const collection = validateGraph(
       { edges: [], nodes: [trigger({ collection: 'pages', kind: 'collection', operations: ['create'] })] },
       catalogue,

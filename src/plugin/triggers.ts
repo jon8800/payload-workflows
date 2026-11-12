@@ -24,7 +24,7 @@ export function triggerOf(graph: null | undefined | WorkflowGraph): TriggerData 
 /** The next time a cron expression fires after `from`, or null if the expression is not valid. */
 export function nextCronRun(cron: string, timezone: string | undefined, from: Date): Date | null {
   try {
-    return new Cron(cron, { paused: true, sloppyRanges: true, timezone }).nextRun(from)
+    return new Cron(cron, { paused: true, timezone }).nextRun(from)
   } catch {
     return null
   }

@@ -14,6 +14,18 @@ function isBlank(value: unknown): boolean {
 }
 
 const CRON_FIELDS = /^\S+(\s+\S+){4,5}$/
+/** A step needs `*` or an explicit range before the `/` (Croner's strict mode, as in Payload 4). */
+const LOOSE_STEP = /(^|,)(\d*)\/\d+/
+
+/** Why a cron expression cannot run, or null when its shape is fine. */
+export function cronIssue(cron: string | undefined): null | string {
+  const value = (cron ?? '').trim()
+  if (!CRON_FIELDS.test(value)) return 'Enter a cron expression with 5 or 6 fields, e.g. "0 9 * * 1".'
+  if (value.split(/\s+/).some((part) => LOOSE_STEP.test(part))) {
+    return 'Put "*" or a range before each "/" in the cron expression, e.g. "*/10" or "5-59/15".'
+  }
+  return null
+}
 
 /**
  * Checks a graph before it is saved as enabled, and before it runs. Returns an empty list when the
@@ -58,9 +70,8 @@ export function validateGraph(
         issues.push({ message: 'Nothing can connect into the trigger.', nodeId: node.id })
       }
       const { data } = node
-      if (data.kind === 'schedule' && !CRON_FIELDS.test((data.cron ?? '').trim())) {
-        issues.push({ message: 'Enter a cron expression with 5 or 6 fields, e.g. "0 9 * * 1".', nodeId: node.id })
-      }
+      const badCron = data.kind === 'schedule' ? cronIssue(data.cron) : null
+      if (badCron) issues.push({ message: badCron, nodeId: node.id })
       if (data.kind === 'collection') {
         if (!data.collection) {
           issues.push({ message: 'Choose the collection that starts this workflow.', nodeId: node.id })

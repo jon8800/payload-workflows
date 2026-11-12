@@ -183,7 +183,7 @@ const OPERATIONS: { label: string; value: CollectionOperation }[] = [
 function nextRuns(cron: string | undefined, timezone: string | undefined): string[] | null {
   if (!cron?.trim()) return null
   try {
-    return new Cron(cron, { paused: true, sloppyRanges: true, timezone: timezone || undefined }).nextRuns(3).map((date) => date.toLocaleString())
+    return new Cron(cron, { paused: true, timezone: timezone || undefined }).nextRuns(3).map((date) => date.toLocaleString())
   } catch {
     return null
   }

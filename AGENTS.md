@@ -1,10 +1,11 @@
 # payload-workflows
 
-A Payload CMS 3 plugin with two parts: a **Run** tab on `payload-jobs` documents that draws a job as a React Flow graph, and a `workflows` collection with a visual builder whose workflows run on Payload's jobs queue. `README.md` is the user guide. `CLAUDE.md` is a stub that imports this file.
+A Payload CMS 4 plugin (this is the `release/payload-v4-next` branch; `main` is the Payload 3 line) with two parts: a **Run** tab on `payload-jobs` documents that draws a job as a React Flow graph, and a `workflows` collection with a visual builder whose workflows run on Payload's jobs queue. `README.md` is the user guide. `CLAUDE.md` is a stub that imports this file.
 
 ## Tech stack
 
-- Payload 3.90, Next.js 16.3 (Turbopack), React 19.3, `@xyflow/react` 12, `croner` for cron
+- Payload 4.0.0-beta.8, Next.js 16.4 (Turbopack, dev app only), React 19.3, `@xyflow/react` 12, `croner` for cron (strict mode, as in Payload 4)
+- Node 24.22.3 through `useNodeVersion` in `pnpm-workspace.yaml`
 - TypeScript 7 (native compiler). No `baseUrl`; `paths` entries start with `./` or `../`.
 - Oxlint (`.oxlintrc.json`). Must report 0 problems.
 - Vitest. pnpm 10.
@@ -24,12 +25,13 @@ src/
   exports/     `payload-workflows/client` and `payload-workflows/rsc` (import-map entry points)
 test/          integration test: runs visual workflows through Payload's local API (in-memory SQLite)
 dev/           Payload + Next app for development, seed script, example tasks
-scripts/       build-package.mjs (tsc -> dist, fixes import extensions, copies SCSS), check-publish, screenshots
+scripts/       build-package.mjs (tsc -> dist, fixes import extensions, copies CSS), check-publish, screenshots
 ```
 
 ## Rules
 
-- **Admin UI:** SCSS under `@layer payload-default`, Payload CSS variables only, no Tailwind. Prefer `@payloadcms/ui` public exports over deep imports. Keep the admin layer thin: Payload 4 will change the admin UI.
+- **Admin UI:** plain CSS (`src/admin/client/styles.css`) under `@layer payload-default`, Payload 4's `--color-*` tokens only, no SCSS, no Tailwind. Payload 4 field wrappers (`.field-type`) grow in flex containers: set `flex: none` where we stack them. Prefer `@payloadcms/ui` public exports over deep imports. Never import from `next/*`: use `useRouter` and friends from `@payloadcms/ui`.
+- **Local API access:** Payload 4 defaults `overrideAccess` to `false`, for `payload.jobs.*` too. Every call states its choice: `true` only for trusted background work.
 - React Flow's stylesheet is not layered, so it beats our layered SCSS. Theme it through the CSS variables in `src/admin/client/flowTheme.ts` (set inline on the React Flow root) and inline `style` on edges and handles. Do not try to override `.react-flow__*` classes in SCSS.
 - Only `RunGraph.tsx` and `Editor.tsx` may import `@xyflow/react` at module level (and `NodeCard.tsx`, which only they import). Everything else must stay light, because the import map loads it on every admin page.
 - Server components by default; client components at the leaves.
@@ -45,6 +47,6 @@ scripts/       build-package.mjs (tsc -> dist, fixes import extensions, copies S
 - `pnpm verify`: typecheck (package and dev app), lint, tests
 - `pnpm test`: vitest (unit tests in `src/core`, integration in `test/`)
 - `pnpm build`: `dist/`. `pnpm pack` runs the build and swaps in `publishConfig.exports`. Publish only with pnpm.
-- `pnpm dev:seed`, then `pnpm dev`: http://localhost:3060/admin (auto-login `dev@payloadcms.com` / `test`)
+- `pnpm dev:seed`, then `pnpm dev`: http://localhost:3060/admin (auto-login `dev@payloadcms.com` / `test`). After a schema change, delete `dev/dev.db` and seed again: Payload's dev push asks a y/N question on data loss and blocks the server.
 - `pnpm dev:generate-importmap` after adding or renaming admin components; `pnpm dev:generate-types` after config changes
 - `pnpm screenshots` with the dev app running: retakes `docs/screenshots/`. Look at every screenshot after UI changes.

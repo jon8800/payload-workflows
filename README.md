@@ -2,7 +2,7 @@
 
 Visual workflows for [Payload CMS](https://payloadcms.com) 4 beta.
 
-`0.2.0-next.0` targets Payload `4.0.0-beta.3` only. Install it with `@next`. The `latest` tag remains on the Payload 3 release.
+`0.2.0-next.1` targets Payload `^4.0.0-beta.8`. Install it with `@next`. The `latest` tag remains on the Payload 3 release.
 
 - **Run viewer.** Every job in `payload-jobs` gets a **Run** tab that draws the job as a graph: one node per task run, a picker for each retry attempt, and a side panel with each step's input, output and error. Running jobs update by themselves.
 - **Workflow builder.** A `workflows` collection where editors build automations by dragging tasks onto a canvas and connecting them, with no code. Workflows start manually, on a schedule, or when a document is created, updated or deleted. They run on Payload's own jobs queue, with Payload's retries.
@@ -11,8 +11,9 @@ Visual workflows for [Payload CMS](https://payloadcms.com) 4 beta.
 
 ## Requirements
 
-- Payload and `@payloadcms/ui` `4.0.0-beta.3`, Next.js `^16.4.2`, React 19
-- Node `>=24.15.0`; TypeScript projects need TypeScript `>=6.0.3`
+- Payload and `@payloadcms/ui` `^4.0.0-beta.8`, React `^19.3.1`. The plugin does not import Next.js; Payload 4 itself needs Next.js `>=16.4.1`.
+- Node `>=24.22.1`; TypeScript projects need TypeScript `>=6.0.3`
+- No `sass`: the plugin ships plain CSS.
 - At least one task in `jobs.tasks` (the builder places your own tasks on the canvas)
 
 ## Install
@@ -71,7 +72,7 @@ Open **Automation → Workflows** and create a workflow.
 
 1. **Trigger.** Every workflow starts with one trigger. Select it to choose when it starts:
    - **Run manually**: only with the **Run now** button.
-   - **On a schedule**: a cron expression, such as `0 9 * * 1-5` for 09:00 on weekdays, with an optional time zone. The panel shows the next three runs.
+   - **On a schedule**: a cron expression, such as `0 9 * * 1-5` for 09:00 on weekdays, with an optional time zone. The panel shows the next three runs. As in Payload 4, a step needs `*` or a range before the `/`: write `*/10` or `5-59/15`, not `/10` or `5/15`.
    - **When a document changes**: a collection, the operations (created, updated, deleted), and optional rules, such as "`{{trigger.doc.status}}` equals `published`".
 2. **Steps.** Drag a task from the left onto the canvas, or click it to add it after the selected step. Drag from a step's bottom handle to the next step's top handle to connect them.
    - **Task** runs one of your registered tasks. Its form is built from the task's `inputSchema`.
@@ -167,7 +168,7 @@ const sendEmail: TaskConfig<'sendEmail'> = {
 - `text`, `textarea`, `email`, `number`, `date`, `relationship` and `upload` fields become text inputs that accept references. `select` and `radio` fields become a select. `checkbox` becomes a checkbox. `json`, `group`, `array` and other fields become a JSON text area.
 - The runner converts text to the field type before it calls the task: `"42"` becomes `42` for a number field, and JSON text is parsed for a JSON field. Empty values are left out.
 - `outputSchema` field names appear as references in later steps.
-- Payload v4 checks Local API access by default. A trusted background task must explicitly set `overrideAccess: true` when it has no user. Apply that only after the trigger has been authorized.
+- Payload 4 checks Local API access by default (`overrideAccess` defaults to `false`). Scheduled and collection-triggered runs have no signed-in user, so a task that reads or writes documents must pass `overrideAccess: true` itself. "Run now" runs as the user who clicked it.
 - Pass `req` to Local API calls in your tasks. Then a task that updates a document counts toward `maxChainDepth`, and a workflow cannot trigger itself forever.
 
 ## Known limits

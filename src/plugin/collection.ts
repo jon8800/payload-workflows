@@ -131,5 +131,7 @@ export function workflowsCollection(options: ResolvedOptions): CollectionConfig 
     ],
     hooks: { beforeChange: [syncTriggerFields] },
     labels: { plural: 'Workflows', singular: 'Workflow' },
+    // The scheduler writes `nextRunAt` after every run, which would add a version each time.
+    versions: false,
   }
 }

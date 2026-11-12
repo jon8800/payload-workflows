@@ -6,8 +6,8 @@
 //    output file per source file, so module boundaries and 'use client' directives stay as they are.
 // 2. Adds `.js` (or `/index.js`) to relative import paths, so Node's ESM loader (Payload CLI,
 //    `payload run`, tsx) can load the output, not only bundlers.
-// 3. Copies `.scss` and `.css` files next to the JS. The app's Next.js compiles them, the same way
-//    it compiles the SCSS that `@payloadcms/ui` ships.
+// 3. Copies `.css` files next to the JS. The app's bundler loads them, the same way
+//    it loads the CSS that `@payloadcms/ui` ships. Apps need no `sass`.
 // 4. Checks that `publishConfig.exports` maps every `exports` entry to the matching `dist` file.
 
 import { spawnSync } from 'node:child_process'
@@ -19,7 +19,7 @@ const pkgDir = process.cwd()
 const srcDir = path.join(pkgDir, 'src')
 const distDir = path.join(pkgDir, 'dist')
 const pkg = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'))
-const ASSET_EXTENSIONS = ['.scss', '.css']
+const ASSET_EXTENSIONS = ['.css']
 
 function fail(message) {
   console.error(`[build-package] ${pkg.name}: ${message}`)

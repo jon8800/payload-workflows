@@ -1,29 +1,22 @@
 # Payload 4 prerelease
 
-Candidate: `payload-workflows@0.2.0-next.0`, for Payload `4.0.0-beta.3` only.
+The `release/payload-v4-next` branch holds the Payload 4 line. It publishes to npm under the `next` tag. `main` and the npm `latest` tag stay on the Payload 3 line.
 
-This worktree starts at `f336b77` on `release/payload-v4-next`. The original checkout and the npm `latest` tag remain unchanged.
+Current candidate: `payload-workflows@0.2.0-next.1`, for Payload `^4.0.0-beta.8`.
 
 ## Validation
 
-Run from this worktree with pnpm. `pnpm-workspace.yaml` selects Node `24.15.0`.
+Run with pnpm. `pnpm-workspace.yaml` selects Node `24.22.3`.
 
 ```powershell
 pnpm install --frozen-lockfile
 pnpm verify
 node --test scripts/release-target.test.mjs
-pnpm build
 pnpm pack
 ```
 
-Package and dev app typechecks passed. Lint passed. All 41 plugin tests passed, including the original SQLite integration suite and new v4 regressions. All 3 release-channel tests passed. The compiled server and core exports load in native Node.
-
-The inspected tarball contains 68 files. All four public exports point to existing `dist` files. It contains no test, fixture, source, dev, environment, or dependency folders. The existing package build excludes test files and preserves client directives and stylesheets.
+Then check the dev app: delete `dev/dev.db`, run `pnpm dev:seed`, start `pnpm dev`, and open the workflows list, the builder and the Run tab of a few jobs, in light and dark mode.
 
 ## Publishing
 
-After review, commit this worktree and push tag `v0.2.0-next.0`. The existing workflow uses npm trusted publishing through GitHub OIDC. It requires no npm token secret.
-
-The workflow checks the Git tag against package.json. It publishes the exact packed filename with explicit `--tag next` for this prerelease. Stable versions derive `latest` instead. The current stable `latest` tag stays on `0.1.3`.
-
-The parent task must complete the combined consumer build before release. This preparation does not commit, push, tag, or publish anything.
+Push tag `v<version>` (for example `v0.2.0-next.1`). The publish workflow uses npm trusted publishing through GitHub OIDC, so it needs no npm token. It checks the tag against `package.json` and publishes a prerelease with `--tag next`. Stable versions get `latest`.

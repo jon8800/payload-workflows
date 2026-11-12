@@ -1,6 +1,6 @@
 'use client'
 
-import './styles.scss'
+import './styles.css'
 
 import { useField } from '@payloadcms/ui'
 import { lazy, Suspense } from 'react'

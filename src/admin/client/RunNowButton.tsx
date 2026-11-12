@@ -1,7 +1,6 @@
 'use client'
 
-import { Button, toast, useConfig, useDocumentInfo, useFormModified } from '@payloadcms/ui'
-import { useRouter } from 'next/navigation'
+import { Button, toast, useConfig, useDocumentInfo, useFormModified, useRouter } from '@payloadcms/ui'
 import { useState } from 'react'
 
 type RunResponse = { error?: string; issues?: { message: string }[]; jobId?: number | string }

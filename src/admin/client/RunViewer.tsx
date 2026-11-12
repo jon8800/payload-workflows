@@ -1,6 +1,6 @@
 'use client'
 
-import './styles.scss'
+import './styles.css'
 
 import { SetDocumentStepNav, useConfig } from '@payloadcms/ui'
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
