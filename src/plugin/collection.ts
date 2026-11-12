@@ -88,6 +88,7 @@ export function workflowsCollection(options: ResolvedOptions): CollectionConfig 
             name: 'triggerKind',
             type: 'select',
             admin: { readOnly: true, width: '30%' },
+            defaultValue: 'manual',
             index: true,
             label: 'Trigger',
             options: [
